@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이화여자고등학교 교정 지도</title>
+    <style>
+        /* 기본 전체 스타일 */
+        body {
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        /* 메인 페이지 (지도 화면) */
+        #map-view {
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 { color: #1b5e20; }
+        
+        .instruction {
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        /* 지도를 감싸는 영역 */
+        .image-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            max-width: 900px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        /* 지도 이미지 */
+        .image-container img {
+            width: 100%;
+            display: block;
+        }
+
+        /* 클릭 가능한 투명한 버튼(핀) 스타일 */
+        .map-pin {
+            position: absolute;
+            background-color: rgba(46, 204, 113, 0.4);
+            border: 2px solid #27ae60;
+            border-radius: 50%;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+        }
+
+        .map-pin:hover {
+            background-color: rgba(46, 204, 113, 0.8);
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+
+        /* 상세 설명 페이지 */
+        #detail-view {
+            display: none;
+            padding: 40px 20px;
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            min-height: 100vh;
+        }
+
+        #detail-title {
+            color: #1b5e20;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        #detail-desc {
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            color: #444;
+        }
+
+        /* 뒤로가기 버튼 */
+        .back-btn {
+            background-color: #1b5e20;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .back-btn:hover { background-color: #144d18; }
+    </style>
+</head>
+<body>
+
+    <div id="map-view">
+        <h1>이화여자고등학교 교정 지도</h1>
+        <p class="instruction">지도에서 초록색 동그라미(장소)를 클릭하면 상세 설명이 나옵니다.</p>
+
+        <div class="image-container">
+            <img src="map.png" alt="이화여고 캠퍼스 지도">
+            
+            <div class="map-pin" style="top: 13%; left: 69%; width: 6%; height: 8%;" onclick="showDetail(1)" title="1. 이화박물관"></div>
+            <div class="map-pin" style="top: 13%; left: 56%; width: 6%; height: 8%;" onclick="showDetail(2)" title="2. 이화100주년기념관"></div>
+            <div class="map-pin" style="top: 31%; left: 67%; width: 6%; height: 8%;" onclick="showDetail(3)" title="3. 이화여고관"></div>
+            <div class="map-pin" style="top: 34%; left: 84%; width: 6%; height: 8%;" onclick="showDetail(4)" title="4. 유관순우물"></div>
+            <div class="map-pin" style="top: 58%; left: 60%; width: 6%; height: 8%;" onclick="showDetail(5)" title="5. 노천극장"></div>
+            <div class="map-pin" style="top: 82%; left: 47%; width: 6%; height: 8%;" onclick="showDetail(6)" title="6. 유관순기념관"></div>
+            <div class="map-pin" style="top: 88%; left: 38%; width: 6%; height: 8%;" onclick="showDetail(7)" title="7. 이화교회"></div>
+            <div class="map-pin" style="top: 88%; left: 28%; width: 6%; height: 8%;" onclick="showDetail(8)" title="8. 체육관"></div>
+            <div class="map-pin" style="top: 88%; left: 65%; width: 6%; height: 8%;" onclick="showDetail(9)" title="9. 기숙사"></div>
+            <div class="map-pin" style="top: 64%; left: 24%; width: 6%; height: 8%;" onclick="showDetail(10)" title="10. 대운동장"></div>
+            
+            <div class="map-pin" style="top: 37%; left: 33%; width: 5%; height: 7%;" onclick="showDetail(11)" title="11. 도서관"></div>
+        </div>
+    </div>
+
+    <div id="detail-view">
+        <h2 id="detail-title">장소 이름</h2>
+        <p id="detail-desc">장소에 대한 설명이 이곳에 표시됩니다.</p>
+        <button class="back-btn" onclick="showMap()">← 지도로 돌아가기</button>
+    </div>
+
+    <script>
+        const placeData = {
+            1: { title: "1. 이화박물관", desc: "이화여자고등학교의 역사와 전통을 살펴볼 수 있는 박물관입니다." },
+            2: { title: "2. 이화100주년기념관", desc: "창립 100주년을 기념하여 세워진 곳으로 다양한 행사가 열립니다." },
+            3: { title: "3. 이화여고본관", desc: "학생들의 주요 수업이 이루어지는 건물입니다." },
+            4: { title: "4. 유관순우물터", desc: "유관순 열사를 기리는 뜻깊은 우물터입니다." },
+            5: { title: "5. 노천극장", desc: "야외 공연장으로 학생들의 다양한 행사와 축제가 열리는 곳입니다." },
+            6: { title: "6. 유관순기념관", desc: "유관순 열사의 정신을 기리고 추모하기 위해 세워진 기념관입니다." },
+            7: { title: "7. 이화교회", desc: "학생들의 예배와 종교 활동이 이루어지는 공간입니다." },
+            8: { title: "8. 체육관", desc: "실내 체육 활동과 체력 단련을 위한 쾌적한 실내 체육관입니다." },
+            9: { title: "9. 기숙사", desc: "학생들이 생활하는 아늑하고 편안한 공간입니다." },
+            10: { title: "10. 대운동장", desc: "체육 대회 및 야외 활동이 진행되는 넓은 대운동장입니다." },
+            11: { title: "11. 도서관", desc: "학생들의 학업과 독서를 위한 공간입니다. 다양한 서적과 쾌적한 학습 환경이 마련되어 있습니다." }
+        };
+
+        const mapView = document.getElementById('map-view');
+        const detailView = document.getElementById('detail-view');
+        const titleElement = document.getElementById('detail-title');
+        const descElement = document.getElementById('detail-desc');
+
+        function showDetail(id) {
+            titleElement.innerText = placeData[id].title;
+            descElement.innerText = placeData[id].desc;
+            mapView.style.display = 'none';
+            detailView.style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function showMap() {
+            detailView.style.display = 'none';
+            mapView.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
